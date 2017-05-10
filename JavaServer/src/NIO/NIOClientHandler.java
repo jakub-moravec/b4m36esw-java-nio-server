@@ -1,15 +1,15 @@
 package NIO;
 
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+import org.omg.CORBA.Environment;
 import utils.BufferUtils;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.Base64;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
@@ -19,7 +19,7 @@ public class NIOClientHandler extends NIOHandler {
     private ByteBuffer writeBuffer = null;
     private GZIPInputStream gzipInputStream;
 
-    public NIOClientHandler(SocketChannel ch) throws IOException {
+    NIOClientHandler(SocketChannel ch) throws IOException {
         super(ch, SelectionKey.OP_READ);
         this.channel = ch;
         readBuffer = NIOServer.bufferPool.getBuffer();
@@ -55,7 +55,6 @@ public class NIOClientHandler extends NIOHandler {
 
         try {
             readBuffer.flip();
-
             String[] line;
 
             BufferUtils.readLine(readBuffer, 0); // request header
@@ -68,15 +67,30 @@ public class NIOClientHandler extends NIOHandler {
             readBuffer.get(); // '\r'
             readBuffer.get(); // '\n'
 
-            int contentStartPosition = readBuffer.position();
-
             ByteArrayInputStream content = BufferUtils.getContent(readBuffer, Integer.valueOf(headers.get("Content-Length")) - 1);
 
 
             gzipInputStream = new GZIPInputStream(content);
 
-            while (gzipInputStream.available() > 0) {
-                System.out.print((char) gzipInputStream.read());
+            List<String> words = new ArrayList<>();
+            String word = "";
+            int b;
+            while (true) {
+                try {
+                    if((b = gzipInputStream.read()) >= 0) {
+                        char c = (char) b;
+                        if (c == ' ') {
+                            words.add(word);
+                            word = "";
+                        }
+                        word += c;
+                    }
+                } catch (EOFException eofException) {
+                    if(!"".equals(word)) {
+                        words.add(word);
+                    }
+                    break;
+                }
             }
 
 
