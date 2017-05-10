@@ -56,7 +56,7 @@ public class NIOClientHandler extends NIOHandler {
         try {
             readBuffer.flip();
 
-            String[] line = new String[2];
+            String[] line;
 
             BufferUtils.readLine(readBuffer, 0); // request header
             BufferUtils.readLine(readBuffer, 0); // Host
@@ -73,62 +73,8 @@ public class NIOClientHandler extends NIOHandler {
             ByteArrayInputStream content = BufferUtils.getContent(readBuffer, Integer.valueOf(headers.get("Content-Length")) - 1);
 
 
-//            System.out.println(readBuffer.array());
-//
-//            System.out.println(readBuffer.arrayOffset());
-//
-//            char c = ' ';
-//            String key = "", value = "";
-//            while (readBuffer.hasRemaining()) { // && (c = (char) readBuffer.get()) != '\n') {
-//
-//                boolean charIsKey = true;
-//                if(c == ':') {
-//                    charIsKey = false;
-//                }
-//
-//                if(charIsKey) {
-//                    key += c;
-//                } else {
-//                    value += c;
-//                }
-//
-//
-//            }
-//            headers.put(key, value);
-
-//
-//
-//            for (int i = 0; i < readBuffer.array().length; i++) {
-//
-//            }
-//            String x = "";
-//            for (byte b : readBuffer.array()) {
-//                System.out.print((char) b);
-//                x += (char) b;
-//            }
-//            System.out.println(x);
-
-//
-
-//            System.out.println("aaaaaaaaaaaaa");
-//            BASE64Decoder decoder = new BASE64Decoder();
-//            byte[] decodedBytes = decoder.decodeBuffer(readBuffer);
-
-//            BASE64Encoder encoder = new BASE64Encoder();
-//            byte[] encodedBytes = encoder.encodeBuffer(new ByteArrayInputStream(readBuffer.array()),);
-//
-//            BufferedReader reader = new BufferedReader(new Reader(readBuffer));
-
             gzipInputStream = new GZIPInputStream(content);
 
-//            while (readBuffer.hasRemaining()) {
-//                System.out.print((char) readBuffer.get());
-//            }
-//
-//            System.out.println("bbbbbbbbbbbbb");
-
-
-            
             while (gzipInputStream.available() > 0) {
                 System.out.print((char) gzipInputStream.read());
             }
