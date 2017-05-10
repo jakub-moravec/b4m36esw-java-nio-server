@@ -1,14 +1,13 @@
 package NIO;
 
-import org.omg.CORBA.Environment;
 import utils.BufferUtils;
+import utils.HttpHeadersUtils;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -51,21 +50,20 @@ public class NIOClientHandler extends NIOHandler {
     }
 
     private void process() {
-        Map<String, String> headers = new HashMap<>();
-
         try {
             readBuffer.flip();
-            String[] line;
+            String httpHeadersFistLine = BufferUtils.readLine(readBuffer);
+            String[] split = httpHeadersFistLine.split(" ");
+            String httpMethod = split[0];
+            String host = split[1];
 
-            BufferUtils.readLine(readBuffer, 0); // request header
-            BufferUtils.readLine(readBuffer, 0); // Host
-            BufferUtils.readLine(readBuffer, 0); // User-Agent
-            BufferUtils.readLine(readBuffer, 0); // Accept
-            line = BufferUtils.readLine(readBuffer, 0).split(": "); // Content-Length
-            headers.put(line[0], line[1]);
-            BufferUtils.readLine(readBuffer, 0); // Content-Type
-            readBuffer.get(); // '\r'
-            readBuffer.get(); // '\n'
+            List<String> httpHeaderLines = new ArrayList<>();
+            String line;
+            while (!"".equals(line = BufferUtils.readLine(readBuffer))) {
+                httpHeaderLines.add(line);
+            }
+
+            Map<String, String> headers = HttpHeadersUtils.buildHttpHeaders(httpHeaderLines);
 
             ByteArrayInputStream content = BufferUtils.getContent(readBuffer, Integer.valueOf(headers.get("Content-Length")) - 1);
 

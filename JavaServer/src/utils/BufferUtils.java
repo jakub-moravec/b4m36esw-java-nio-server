@@ -4,11 +4,17 @@ import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 
 /**
- * Created by james on 10.5.17.
+ * Utility class helping with reading {@link ByteBuffer}.
  */
 public class BufferUtils {
 
-    public static String readLine(ByteBuffer buffer, int position) {
+    /**
+     * Reads one line from buffer.
+     * Moves buffer position.
+     * @param buffer buffer
+     * @return read line
+     */
+    public static String readLine(ByteBuffer buffer) {
         String line = "";
 
         while(buffer.hasRemaining()) {
@@ -28,9 +34,15 @@ public class BufferUtils {
         return line;
     }
 
-    public static ByteArrayInputStream getContent(ByteBuffer buffer, int contentLenght) {
-        byte[] content = new byte[contentLenght];
-        for (int i = 0; i < contentLenght; i++) {
+    /**
+     * Reads content from buffer starting at actual buffer position.
+     * @param buffer buffer
+     * @param contentLength number of bytes to read
+     * @return read content
+     */
+    public static ByteArrayInputStream getContent(ByteBuffer buffer, int contentLength) {
+        byte[] content = new byte[contentLength];
+        for (int i = 0; i < contentLength; i++) {
             content[i] = buffer.get();
         }
         return new ByteArrayInputStream(content);
