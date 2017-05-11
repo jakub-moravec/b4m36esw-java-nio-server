@@ -55,8 +55,8 @@ public class HttpUtils {
             httpResponse.append(responseContent.length());
             httpResponse.append("\r\n");
 
-            httpResponse.append("Connection: Closed");
-            httpResponse.append("Content-Type: text/plain");
+            httpResponse.append("Connection: Closed\r\n");
+            httpResponse.append("Content-Type: text/plain\r\n");
 
             httpResponse.append("\r\n");
 

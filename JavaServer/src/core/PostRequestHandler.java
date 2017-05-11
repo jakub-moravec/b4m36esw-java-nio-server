@@ -45,14 +45,19 @@ public class PostRequestHandler {
                 if((b = contentStream.read()) >= 0) {
                     char c = (char) b;
                     if (c == ' ') {
-                        words.add(word);
+                        words.add(word.trim());
                         word = "";
                     }
                     word += c;
+                } else {
+                    if(!"".equals(word)) {
+                        words.add(word.trim());
+                    }
+                    break;
                 }
             } catch (EOFException eofException) {
                 if(!"".equals(word)) {
-                    words.add(word);
+                    words.add(word.trim());
                 }
                 break;
             }

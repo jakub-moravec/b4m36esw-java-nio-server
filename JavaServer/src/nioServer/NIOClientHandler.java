@@ -12,7 +12,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.*;
-import java.util.zip.GZIPInputStream;
 
 public class NIOClientHandler extends NIOHandler {
     private final SocketChannel channel;
@@ -75,9 +74,9 @@ public class NIOClientHandler extends NIOHandler {
 
         // Delegate request
         String response;
-        if (HttpRequestPath.COUNT.toString().equals(requestPath) && HttpMethod.GET.toString().equals(httpMethod)) {
+        if (HttpRequestPath.COUNT.getName().equals(requestPath) && HttpMethod.GET.getName().equals(httpMethod)) {
             response = GetRequestHandler.handleRequest();
-        } else if (HttpRequestPath.DATA.toString().equals(requestPath) && HttpMethod.POST.toString().equals(httpMethod)) {
+        } else if (HttpRequestPath.DATA.getName().equals(requestPath) && HttpMethod.POST.getName().equals(httpMethod)) {
             ByteArrayInputStream content = BufferUtils.getContent(readBuffer, Integer.valueOf(headers.get("Content-Length")));
             response = PostRequestHandler.handleRequest(content);
         } else {
