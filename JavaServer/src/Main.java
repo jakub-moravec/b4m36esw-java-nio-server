@@ -16,8 +16,6 @@ public class Main {
      * @throws IOException in cace of communication failure
      */
     public static void main(String[] args) throws IOException {
-        ServerSettings.setPort(1234); // FIXME: 10.5.17
-
         NIOServer.startNIOServer();
     }
 }

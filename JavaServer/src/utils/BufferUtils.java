@@ -40,11 +40,20 @@ public class BufferUtils {
      * @param contentLength number of bytes to read
      * @return read content
      */
-    public static ByteArrayInputStream getContent(ByteBuffer buffer, int contentLength) {
+    public static byte[] getContent(ByteBuffer buffer, int contentLength) {
         byte[] content = new byte[contentLength];
+        int numberOfCharsRead = 0;
         for (int i = 0; i < contentLength; i++) {
+            if(buffer.remaining() == 0) {
+                break;
+            }
             content[i] = buffer.get();
+            numberOfCharsRead++;
         }
-        return new ByteArrayInputStream(content);
+
+        byte[] result = new byte[numberOfCharsRead];
+        System.arraycopy(content, 0, result, 0, numberOfCharsRead);
+
+        return result;
     }
 }

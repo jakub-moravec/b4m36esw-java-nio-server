@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
  *
  * Implements Singleton pattern.
  */
-public class WordsHolder {
+class WordsHolder {
 
     /**
      * Singleton instance.
@@ -29,7 +29,7 @@ public class WordsHolder {
     /**
      * @return singleton instance
      */
-    public static WordsHolder getInstance(){
+    static WordsHolder getInstance(){
         if(instance == null) {
             synchronized (WordsHolder.class) {
                 if(instance == null) {
@@ -48,7 +48,7 @@ public class WordsHolder {
      * The premise is, that it will be faster to add unique words to thread-safe set, than non-unique.
      * @param words words
      */
-    public void addWords(Set<String> words){
+    void addWords(Set<String> words){
         uniqueWords.addAll(words);
     }
 
@@ -58,7 +58,14 @@ public class WordsHolder {
      * FIXME: make sure that all words from actual post request were added
      * @return number of unique words
      */
-    public int getNuberOfUniqueWords() {
+    int getNuberOfUniqueWords() {
         return uniqueWords.size();
+    }
+
+    /**
+     * Clears the set of unique words.
+     */
+    void clear() {
+        uniqueWords.clear();
     }
 }

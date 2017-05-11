@@ -1,9 +1,9 @@
 package nioServer;
 
 import core.GetRequestHandler;
+import model.HttpRequest;
 import core.PostRequestHandler;
 import model.HttpMethod;
-import model.HttpRequestPath;
 import utils.BufferUtils;
 import utils.HttpUtils;
 
@@ -14,15 +14,16 @@ import java.nio.channels.SocketChannel;
 import java.util.*;
 
 public class NIOClientHandler extends NIOHandler {
-    private final SocketChannel channel;
+    private final SocketChannel socket;
     private ByteBuffer readBuffer;
     private ByteBuffer writeBuffer = null;
+    private HttpRequest httpRequest;
 
     NIOClientHandler(SocketChannel ch) throws IOException {
         super(ch, SelectionKey.OP_READ);
-        this.channel = ch;
+        this.socket = ch;
         readBuffer = NIOServer.bufferPool.getBuffer();
-        channel.configureBlocking(false);
+        socket.configureBlocking(false);
     }
 
     @Override
@@ -43,10 +44,10 @@ public class NIOClientHandler extends NIOHandler {
      * @throws IOException in case of failure
      */
     private void read() throws IOException {
-        if (channel.read(readBuffer) == -1) {
+        if (socket.read(readBuffer) == -1) {
             getSelectionKey().cancel();
-            channel.close();
-        } else if (readBuffer.remaining() != 0) {
+            socket.close();
+        } else { //if (readBuffer.remaining() != 0) { FIXME
             getSelectionKey().interestOps(0);
             getSelectionKey().selector().wakeup();
             NIOServer.workers.execute(this::process);
@@ -59,28 +60,40 @@ public class NIOClientHandler extends NIOHandler {
     private void process() {
         // Read request headers
         readBuffer.flip();
-        String httpHeadersFistLine = BufferUtils.readLine(readBuffer);
-        String[] split = httpHeadersFistLine.split(" ");
-        String httpMethod = split[0];
-        String requestPath = split[1];
 
-        List<String> httpHeaderLines = new ArrayList<>();
-        String line;
-        while (!"".equals(line = BufferUtils.readLine(readBuffer))) {
-            httpHeaderLines.add(line);
+        if(httpRequest == null) {
+            String httpMethod  = BufferUtils.readLine(readBuffer).split(" ")[0];
+
+            List<String> httpHeaderLines = new ArrayList<>();
+            String line;
+            while (!"".equals(line = BufferUtils.readLine(readBuffer))) {
+                httpHeaderLines.add(line);
+            }
+
+            httpRequest = new HttpRequest(HttpUtils.parseHttpHeaders(httpHeaderLines), HttpMethod.valueOf(httpMethod));
         }
-
-        Map<String, String> headers = HttpUtils.parseHttpHeaders(httpHeaderLines);
 
         // Delegate request
         String response;
-        if (HttpRequestPath.COUNT.getName().equals(requestPath) && HttpMethod.GET.getName().equals(httpMethod)) {
-            response = GetRequestHandler.handleRequest();
-        } else if (HttpRequestPath.DATA.getName().equals(requestPath) && HttpMethod.POST.getName().equals(httpMethod)) {
-            ByteArrayInputStream content = BufferUtils.getContent(readBuffer, Integer.valueOf(headers.get("Content-Length")));
-            response = PostRequestHandler.handleRequest(content);
-        } else {
-            response = HttpUtils.createHttpBadRequestResponse();
+        switch (httpRequest.getHttpMethod()) {
+            case GET:
+                response = GetRequestHandler.handleRequest();
+                break;
+            case POST:
+                byte[] contentFragment = BufferUtils.getContent(readBuffer, httpRequest.getMissingBytes());
+                int missingBytes = httpRequest.addContent(contentFragment);
+                if(missingBytes == 0) {
+                    response = PostRequestHandler.handleRequest(new ByteArrayInputStream(httpRequest.getContent()));
+                    break;
+                } else {
+                    readBuffer.clear();
+                    getSelectionKey().interestOps(SelectionKey.OP_READ);
+                    getSelectionKey().selector().wakeup();
+                    return;
+                }
+            default:
+                response = HttpUtils.createHttpBadRequestResponse();
+                break;
         }
 
         // Send response
@@ -98,19 +111,18 @@ public class NIOClientHandler extends NIOHandler {
      */
     private void write(boolean setWriteInterest) {
         try {
-            if (channel.write(writeBuffer) == -1) {
+            if (socket.write(writeBuffer) == -1) {
                 getSelectionKey().cancel();
-                channel.close();
+                socket.close();
             } else if (writeBuffer.remaining() > 0) {
                 if (setWriteInterest) {
                     getSelectionKey().interestOps(SelectionKey.OP_WRITE);
                 }
             } else {
-                readBuffer = writeBuffer;
-                readBuffer.clear();
+                writeBuffer.clear();
                 writeBuffer = null;
                 getSelectionKey().interestOps(SelectionKey.OP_READ);
-                channel.close();
+                socket.close();
             }
             if (setWriteInterest) {
                 getSelectionKey().selector().wakeup();
@@ -120,7 +132,7 @@ public class NIOClientHandler extends NIOHandler {
             readBuffer.clear();
             writeBuffer = null;
             try {
-                channel.close();
+                socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

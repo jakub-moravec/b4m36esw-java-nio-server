@@ -62,7 +62,7 @@ public class PostRequestHandler {
                 break;
             }
         }
-
+        contentStream.close();
         return  words;
     }
 }

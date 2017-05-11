@@ -13,6 +13,7 @@ public class GetRequestHandler {
      */
     public static String handleRequest() {
         int numberOfUniqueWords = WordsHolder.getInstance().getNuberOfUniqueWords();
+        WordsHolder.getInstance().clear();
         return HttpUtils.createHttpResponse(200, "OK", String.valueOf(numberOfUniqueWords));
     }
 }
