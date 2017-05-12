@@ -15,7 +15,7 @@ public class HttpUtils {
      * @return HTTP headers
      */
     public static Map<String, String> parseHttpHeaders(List<String> headerLines) {
-        Map<String, String> httpHeaders = new HashMap<>();
+        Map<String, String> httpHeaders = new HashMap<String, String>();
         for (String line : headerLines) {
             String[] split = line.split(": ");
             httpHeaders.put(split[0], split[1]);

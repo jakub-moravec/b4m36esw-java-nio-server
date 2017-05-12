@@ -12,10 +12,14 @@ public class Main {
 
     /**
      * Sets parameters & starts the server.
-     * @param args no arguments are expected
+     * @param args if first argument is present, it is taken as port number
      * @throws IOException in cace of communication failure
      */
     public static void main(String[] args) throws IOException {
+        if(args.length == 1) {
+            ServerSettings.setPort(Integer.valueOf(args[0]));
+        }
+
         NIOServer.startNIOServer();
     }
 }

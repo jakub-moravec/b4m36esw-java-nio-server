@@ -5,8 +5,8 @@ import utils.HttpUtils;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -22,8 +22,8 @@ public class PostRequestHandler {
     public static String handleRequest(InputStream contentStream) {
         try {
             GZIPInputStream unzippedContentStream = new GZIPInputStream(contentStream);
-            Set<String> words = parseWordsFromContentStream(unzippedContentStream);
-            WordsHolder.getInstance().addWords(words);
+            List<String> words = parseWordsFromContentStream(unzippedContentStream);
+            WordsHolder.INSTANCE.addWords(words);
             return HttpUtils.createHttpResponse(200, "OK", null);
         } catch (IOException e) {
             return HttpUtils.createHttpBadRequestResponse();
@@ -36,8 +36,8 @@ public class PostRequestHandler {
      * @return parsed words
      * @throws IOException in case of failure
      */
-    private static Set<String> parseWordsFromContentStream(InputStream contentStream) throws IOException {
-        Set<String> words = new HashSet<>();
+    private static List<String> parseWordsFromContentStream(InputStream contentStream) throws IOException {
+        List<String> words = new ArrayList<String>();
         String word = "";
         int b;
         while (true) {
@@ -45,24 +45,27 @@ public class PostRequestHandler {
                 if((b = contentStream.read()) >= 0) {
                     char c = (char) b;
                     if (c == ' ') {
-                        words.add(word.trim());
+                        addWord(words, word);
                         word = "";
                     }
                     word += c;
                 } else {
-                    if(!"".equals(word)) {
-                        words.add(word.trim());
-                    }
+                    addWord(words, word);
                     break;
                 }
             } catch (EOFException eofException) {
-                if(!"".equals(word)) {
-                    words.add(word.trim());
-                }
+                addWord(words, word);
                 break;
             }
         }
         contentStream.close();
         return  words;
+    }
+
+    private static void addWord(List<String> words, String word) {
+        word = word.trim();
+        if(!"".equals(word)) {
+            words.add(word);
+        }
     }
 }

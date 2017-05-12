@@ -47,10 +47,15 @@ public class NIOClientHandler extends NIOHandler {
         if (socket.read(readBuffer) == -1) {
             getSelectionKey().cancel();
             socket.close();
-        } else { //if (readBuffer.remaining() != 0) { FIXME
+        } else {
             getSelectionKey().interestOps(0);
             getSelectionKey().selector().wakeup();
-            NIOServer.workers.execute(this::process);
+            NIOServer.workers.execute(new Runnable() {
+                @Override
+                public void run() {
+                    process();
+                }
+            });
         }
     }
 
@@ -64,7 +69,7 @@ public class NIOClientHandler extends NIOHandler {
         if(httpRequest == null) {
             String httpMethod  = BufferUtils.readLine(readBuffer).split(" ")[0];
 
-            List<String> httpHeaderLines = new ArrayList<>();
+            List<String> httpHeaderLines = new ArrayList<String>();
             String line;
             while (!"".equals(line = BufferUtils.readLine(readBuffer))) {
                 httpHeaderLines.add(line);
