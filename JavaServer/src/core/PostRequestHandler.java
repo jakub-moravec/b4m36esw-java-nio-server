@@ -2,9 +2,7 @@ package core;
 
 import utils.HttpUtils;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -22,8 +20,15 @@ public class PostRequestHandler {
     public static String handleRequest(InputStream contentStream) {
         try {
             GZIPInputStream unzippedContentStream = new GZIPInputStream(contentStream);
-            List<String> words = parseWordsFromContentStream(unzippedContentStream);
-            WordsHolder.INSTANCE.addWords(words);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(unzippedContentStream));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                sb.append(line);
+            }
+
+//            List<String> words = parseWordsFromContentStream(unzippedContentStream);
+            WordsHolder.INSTANCE.addWords(sb.toString());
             return HttpUtils.createHttpResponse(200, "OK", null);
         } catch (IOException e) {
             return HttpUtils.createHttpBadRequestResponse();

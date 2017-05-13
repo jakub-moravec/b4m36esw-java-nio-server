@@ -43,6 +43,23 @@ class WordsHolder {
     }
 
     /**
+     * Adds new set of words.
+     *
+     * Set is used to be sure that words are unique.
+     *
+     * The premise is, that it will be faster to add unique words to thread-safe set, than non-unique.
+     * @param words words
+     */
+    void addWords(String words){
+        String[] split = words.split("\\s+");
+        for (String word : split) {
+            if(!uniqueWords.containsKey(word)) {
+                uniqueWords.put(word, 1);
+            }
+        }
+    }
+
+    /**
      * Rerturns number of unique words.
      *
      * @return number of unique words
