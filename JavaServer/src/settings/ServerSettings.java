@@ -7,7 +7,7 @@ public class ServerSettings {
 
     private static String host = "localhost";
 
-    private static Integer port = 5555;
+    private static Integer port = 9997;
 
     private static Integer bufferSize = 1000000;
 

@@ -42,7 +42,7 @@ public class NIOServer {
      * Pool of read/write buffers.
      */
     static class BufferPool {
-        private ConcurrentLinkedQueue<ByteBuffer> buffers = new ConcurrentLinkedQueue<>();
+        private ConcurrentLinkedQueue<ByteBuffer> buffers = new ConcurrentLinkedQueue<ByteBuffer>();
 
         BufferPool() {
             addBuffers(BUFFER_POOL_SIZE);

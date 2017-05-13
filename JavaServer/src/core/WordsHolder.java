@@ -1,7 +1,7 @@
 package core;
 
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Words holder.
@@ -15,29 +15,15 @@ class WordsHolder {
     /**
      * Singleton instance.
      */
-    private static WordsHolder instance;
+    static final WordsHolder INSTANCE = new WordsHolder();
 
     /**
      * Set of unique words.
      */
-    private static Set<String> uniqueWords = new ConcurrentSkipListSet<>();
+    private static ConcurrentHashMap<String, Integer> uniqueWords = new ConcurrentHashMap<String, Integer>();
 
     private WordsHolder() {
         //
-    }
-
-    /**
-     * @return singleton instance
-     */
-    static WordsHolder getInstance(){
-        if(instance == null) {
-            synchronized (WordsHolder.class) {
-                if(instance == null) {
-                    instance = new WordsHolder();
-                }
-            }
-        }
-        return instance;
     }
 
     /**
@@ -48,18 +34,38 @@ class WordsHolder {
      * The premise is, that it will be faster to add unique words to thread-safe set, than non-unique.
      * @param words words
      */
-    void addWords(Set<String> words){
-        uniqueWords.addAll(words);
+    void addWords(List<String> words){
+        for (String word : words) {
+            if(!uniqueWords.containsKey(word)) {
+                uniqueWords.put(word, 1);
+            }
+        }
+    }
+
+    /**
+     * Adds new set of words.
+     *
+     * Set is used to be sure that words are unique.
+     *
+     * The premise is, that it will be faster to add unique words to thread-safe set, than non-unique.
+     * @param words words
+     */
+    void addWords(String words){
+        String[] split = words.split("\\s+");
+        for (String word : split) {
+            if(!uniqueWords.containsKey(word)) {
+                uniqueWords.put(word, 1);
+            }
+        }
     }
 
     /**
      * Rerturns number of unique words.
      *
-     * FIXME: make sure that all words from actual post request were added
      * @return number of unique words
      */
-    int getNuberOfUniqueWords() {
-        return uniqueWords.size();
+    int getNumberOfUniqueWords() {
+        return uniqueWords.keySet().size();
     }
 
     /**
