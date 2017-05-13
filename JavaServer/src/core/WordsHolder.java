@@ -1,6 +1,5 @@
 package core;
 
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -27,35 +26,13 @@ class WordsHolder {
     }
 
     /**
-     * Adds new set of words.
-     *
-     * Set is used to be sure that words are unique.
-     *
-     * The premise is, that it will be faster to add unique words to thread-safe set, than non-unique.
-     * @param words words
+     * Adds new word.
+     * @param word word
      */
-    void addWords(List<String> words){
-        for (String word : words) {
-            if(!uniqueWords.containsKey(word)) {
-                uniqueWords.put(word, 1);
-            }
-        }
-    }
-
-    /**
-     * Adds new set of words.
-     *
-     * Set is used to be sure that words are unique.
-     *
-     * The premise is, that it will be faster to add unique words to thread-safe set, than non-unique.
-     * @param words words
-     */
-    void addWords(String words){
-        String[] split = words.split("\\s+");
-        for (String word : split) {
-            if(!uniqueWords.containsKey(word)) {
-                uniqueWords.put(word, 1);
-            }
+    void addWord(String word){
+        word = word.trim();
+        if(!"".equals(word) && !uniqueWords.containsKey(word)) {
+            uniqueWords.put(word, 1);
         }
     }
 
@@ -65,7 +42,7 @@ class WordsHolder {
      * @return number of unique words
      */
     int getNumberOfUniqueWords() {
-        return uniqueWords.keySet().size();
+        return uniqueWords.size();
     }
 
     /**

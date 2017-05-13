@@ -4,8 +4,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -22,16 +20,7 @@ public class PostRequestHandler implements HttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException  {
         try {
             GZIPInputStream unzippedContentStream = new GZIPInputStream(httpExchange.getRequestBody());
-//            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(unzippedContentStream));
-//            StringBuilder sb = new StringBuilder();
-//            String line;
-//            while ((line = bufferedReader.readLine()) != null) {
-//                sb.append(line);
-//            }
-
-            List<String> words = parseWordsFromContentStream(unzippedContentStream);
-//            WordsHolder.INSTANCE.addWords(sb.toString());
-            WordsHolder.INSTANCE.addWords(words);
+            parseWordsFromContentStream(unzippedContentStream);
             httpExchange.sendResponseHeaders(204, -1);
         } catch (IOException e) {
             httpExchange.sendResponseHeaders(500, 0);
@@ -41,39 +30,16 @@ public class PostRequestHandler implements HttpHandler {
     /**
      * Reads POST content and parses words from it.
      * @param contentStream content stream
-     * @return parsed words
      * @throws IOException in case of failure
      */
-    private static List<String> parseWordsFromContentStream(InputStream contentStream) throws IOException {
-        List<String> words = new ArrayList<String>();
-        String word = "";
-        int b;
-        while (true) {
-            try {
-                if((b = contentStream.read()) >= 0) {
-                    char c = (char) b;
-                    if (c == ' ') {
-                        addWord(words, word);
-                        word = "";
-                    }
-                    word += c;
-                } else {
-                    addWord(words, word);
-                    break;
-                }
-            } catch (EOFException eofException) {
-                addWord(words, word);
-                break;
+    private static void parseWordsFromContentStream(InputStream contentStream) throws IOException {
+        BufferedReader br = new BufferedReader( new InputStreamReader(contentStream));
+        String line = null;
+        while ((line = br.readLine()) != null) {
+            for (String word : line.split("\\s+")) {
+                WordsHolder.INSTANCE.addWord(word);
             }
         }
         contentStream.close();
-        return  words;
-    }
-
-    private static void addWord(List<String> words, String word) {
-        word = word.trim();
-        if(!"".equals(word)) {
-            words.add(word);
-        }
     }
 }
