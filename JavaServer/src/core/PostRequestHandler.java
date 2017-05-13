@@ -1,6 +1,7 @@
 package core;
 
-import utils.HttpUtils;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -11,27 +12,29 @@ import java.util.zip.GZIPInputStream;
  * Handler for POST request.
  * Processes words in request content.
  */
-public class PostRequestHandler {
+public class PostRequestHandler implements HttpHandler {
 
     /**
      * Processes words in request content.
-     * @return HTTP 200 response
+     * Writes HTTP 204 response.
      */
-    public static String handleRequest(InputStream contentStream) {
+    @Override
+    public void handle(HttpExchange httpExchange) throws IOException  {
         try {
-            GZIPInputStream unzippedContentStream = new GZIPInputStream(contentStream);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(unzippedContentStream));
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line);
-            }
+            GZIPInputStream unzippedContentStream = new GZIPInputStream(httpExchange.getRequestBody());
+//            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(unzippedContentStream));
+//            StringBuilder sb = new StringBuilder();
+//            String line;
+//            while ((line = bufferedReader.readLine()) != null) {
+//                sb.append(line);
+//            }
 
-//            List<String> words = parseWordsFromContentStream(unzippedContentStream);
-            WordsHolder.INSTANCE.addWords(sb.toString());
-            return HttpUtils.createHttpResponse(200, "OK", null);
+            List<String> words = parseWordsFromContentStream(unzippedContentStream);
+//            WordsHolder.INSTANCE.addWords(sb.toString());
+            WordsHolder.INSTANCE.addWords(words);
+            httpExchange.sendResponseHeaders(204, -1);
         } catch (IOException e) {
-            return HttpUtils.createHttpBadRequestResponse();
+            httpExchange.sendResponseHeaders(500, 0);
         }
     }
 

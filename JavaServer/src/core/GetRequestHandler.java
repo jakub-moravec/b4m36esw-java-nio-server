@@ -1,19 +1,27 @@
 package core;
 
-import utils.HttpUtils;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Handler for GET request.
  * Provides response containing number of unique words.
  */
-public class GetRequestHandler {
+public class GetRequestHandler implements HttpHandler {
 
     /**
-     * @return HTTP 200 response with number of unique words
+     * Writes HTTP 200 response with number of unique words.
      */
-    public static String handleRequest() {
-        int numberOfUniqueWords = WordsHolder.INSTANCE.getNumberOfUniqueWords();
+    @Override
+    public void handle(HttpExchange httpExchange) throws IOException {
+        String numberOfUniqueWords = String.valueOf(WordsHolder.INSTANCE.getNumberOfUniqueWords()) + "\r\n";
         WordsHolder.INSTANCE.clear();
-        return HttpUtils.createHttpResponse(200, "OK", String.valueOf(numberOfUniqueWords));
+        httpExchange.sendResponseHeaders(200, numberOfUniqueWords.length());
+        OutputStream outputStream = httpExchange.getResponseBody();
+        outputStream.write(numberOfUniqueWords.getBytes());
+        outputStream.close();
     }
 }

@@ -1,7 +1,11 @@
-import nioServer.NIOServer;
-import settings.ServerSettings;
+import com.sun.net.httpserver.HttpServer;
+import core.GetRequestHandler;
+import core.PostRequestHandler;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Main class of Java server build upon Java nioServer.
@@ -10,6 +14,11 @@ import java.io.IOException;
  */
 public class Main {
 
+    private static int port = 7777;
+    private static final int BACKLOG = 0;
+    private static final String POST_URL = "/esw/myserver/data";
+    private static final String GET_URL = "/esw/myserver/count";
+
     /**
      * Sets parameters & starts the server.
      * @param args if first argument is present, it is taken as port number
@@ -17,9 +26,15 @@ public class Main {
      */
     public static void main(String[] args) throws IOException {
         if(args.length == 1) {
-            ServerSettings.setPort(Integer.valueOf(args[0]));
+            port = Integer.valueOf(args[0]);
         }
 
-        NIOServer.startNIOServer();
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), BACKLOG);
+        server.createContext(POST_URL, new PostRequestHandler());
+        server.createContext(GET_URL, new GetRequestHandler());
+
+        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        server.setExecutor(executorService);
+        server.start();
     }
 }
